@@ -1,0 +1,4 @@
+name = Bluetent Image Resizer
+description = "A easy way to resize images in files folder."
+package = Images
+core = "7.x"

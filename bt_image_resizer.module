@@ -1,0 +1,8 @@
+<?php
+/**
+ * @file - bt_image_resizer.module
+ *
+ * Provides a utility for resizing original file uploads
+ * that have exceed certain width/height constraints.
+ *
+ */
