@@ -65,6 +65,11 @@ function drush_bt_image_resizer_resize($mime = 'jpeg') {
 }
 
 /**
+ * Batch processor callback function.
+ *
+ * Evaluates images that are too large per incoming arguments
+ * and re-sizes them. Additionally, `file_metadata` table is updated.
+ *
  * @param $mime
  * @param $width
  * @param $height
@@ -163,6 +168,13 @@ function bt_image_resizer_process_batch($mime, $width, $height, $limit, $directo
 
 }
 
+/**
+ * Batch finished callback.
+ *
+ * @param $success
+ * @param $results
+ * @param $operations
+ */
 function bt_image_resizer_process_batch_finished($success, $results, $operations) {
   if($success){
     watchdog('bt_image_resizer', 'Batch success');
