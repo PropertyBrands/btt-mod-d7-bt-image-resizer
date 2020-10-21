@@ -1,69 +1,3 @@
-<?php
-/**
- * @file - Drush command(s) for bt_image_resized module.
- */
-
-/**
- * Implements hook_drush_command().
- */
-function bt_image_resizer_drush_command() {
-  $items['resize-images'] = [
-    'description' => dt('Resize large images.'),
-    'callback' => 'drush_bt_image_resizer_resize',
-    'aliases' => ['rsz'],
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
-    'arguments' => [
-      'mime' => dt('MIME Type to process. `jpeg` or `png`.'),
-    ],
-    'options' => [
-      'limit' => [
-        'description' => 'Limit the number of images to process.',
-      ],
-      'dirs' => [
-        'description' => 'Comma delimited list of directories to process.',
-      ],
-      'width' => [
-        'description' => 'Resize images by width.',
-      ],
-      'height' => [
-        'description' => 'Resize images by height.',
-      ],
-    ]
-  ];
-
-  return $items;
-}
-
-/**
- * `drush` command callback to resize images in a batch process.
- *
- * @param string $mime
- */
-function drush_bt_image_resizer_resize($mime = 'jpeg') {
-
-  $width = drush_get_option('width', 4000);
-  $height = drush_get_option('height', 0);
-  $limit = drush_get_option('limit', 0);
-  $directories = drush_get_option('dirs', NULL);
-
-  $batch = [
-    'title' => t('Processing resize image Batch'),
-    'operations' => [
-      ['bt_image_resizer_process_batch', [$mime, $width, $height, $limit, $directories]]
-    ],
-    'finished' => 'bt_image_resizer_process_batch_finished',
-    'init_message' => t('Resize image Batch is starting.'),
-    'file' => drupal_get_path('module', 'bt_image_resizer') . '/bt_image_resizer.drush.inc',
-  ];
-
-  batch_set($batch);
-  $batch =& batch_get();
-  // Because we are doing this on the back-end, we set progressive to false.
-  $batch['progressive'] = FALSE;
-  // Process the batch.
-  drush_backend_batch_process();
-}
-
 /**
  * Batch processor callback function.
  *
@@ -136,16 +70,20 @@ function bt_image_resizer_process_batch($mime, $width, $height, $limit, $directo
 
   $image = image_load($file->uri);
 
-  // Scale the image to width/height as requested.
-  if(isset($resize_type['width'])) {
-    image_scale($image, $resize_type['width']);
-  }
-  else {
-    image_scale($image, NULL, $resize_type['height']);
-  }
+  if(is_object($image)) {
+    // Scale the image to width/height as requested.
+    if(isset($resize_type['width'])) {
+      image_scale($image, $resize_type['width']);
+    }
+    else {
+      image_scale($image, NULL, $resize_type['height']);
+    }
 
-  // Save the image file invoking hooks.
-  image_save($image);
+    // Save the image file invoking hooks.
+    image_save($image);
+  } else {
+    return;
+  }
 
   // Load a proper file entity and rewrite its metadata.
   $file_to_save = file_load($file->fid);
