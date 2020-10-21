@@ -64,6 +64,7 @@ function drush_bt_image_resizer_resize($mime = 'jpeg') {
   drush_backend_batch_process();
 }
 
+
 /**
  * Batch processor callback function.
  *
@@ -136,16 +137,20 @@ function bt_image_resizer_process_batch($mime, $width, $height, $limit, $directo
 
   $image = image_load($file->uri);
 
-  // Scale the image to width/height as requested.
-  if(isset($resize_type['width'])) {
-    image_scale($image, $resize_type['width']);
-  }
-  else {
-    image_scale($image, NULL, $resize_type['height']);
-  }
+  if(is_object($image)) {
+    // Scale the image to width/height as requested.
+    if(isset($resize_type['width'])) {
+      image_scale($image, $resize_type['width']);
+    }
+    else {
+      image_scale($image, NULL, $resize_type['height']);
+    }
 
-  // Save the image file invoking hooks.
-  image_save($image);
+    // Save the image file invoking hooks.
+    image_save($image);
+  } else {
+    return;
+  }
 
   // Load a proper file entity and rewrite its metadata.
   $file_to_save = file_load($file->fid);
